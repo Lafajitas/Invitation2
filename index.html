@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>Une lettre pour toi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --cream: #f7f0e1;
+    --ink: #4a1630;
+    --ink-soft: #8a5069;
+    --rose: #c93a63;
+    --on-rose: #ffffff;
+    --env-back: #e6a7b8;
+    --env-front: #f3c6d2;
+    --env-flap: #f8d6df;
+    --paper: #fffdf9;
+    --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+    --sans: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --ew: min(92vw, 460px);
+    --eh: calc(var(--ew) * 0.66);
+    --nw: min(88vw, 420px);
+    --nh: 390px;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--sans);
+    overflow-x: hidden;
+  }
+  [hidden] { display: none !important; }
+  button { font: inherit; cursor: pointer; }
+  button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+
+  /* ---------- Feuilles d'automne ---------- */
+  .leaves { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .leaf {
+    position: absolute; top: 0; left: var(--x);
+    width: var(--s); height: var(--s);
+    opacity: .9;
+    animation: fall var(--d) linear var(--delay) infinite;
+    will-change: transform;
+  }
+  .leaf svg { width: 100%; height: 100%; display: block; animation: sway var(--sw) ease-in-out var(--delay) infinite alternate; }
+  @keyframes fall {
+    from { transform: translate3d(0, -14vh, 0); }
+    to   { transform: translate3d(var(--drift), 112vh, 0); }
+  }
+  @keyframes sway {
+    from { transform: rotate(calc(var(--r) * -1)) translateX(-14px); }
+    to   { transform: rotate(var(--r)) translateX(14px); }
+  }
+  .stage, main { position: relative; z-index: 1; }
+
+  /* ---------- Scène : enveloppe + mot ---------- */
+  .stage {
+    min-height: max(100svh, 560px);
+    display: grid;
+    place-items: center;
+    transition: opacity .45s ease;
+  }
+  .stage.leaving { opacity: 0; }
+  .scene {
+    position: relative;
+    width: var(--ew);
+    height: var(--eh);
+    perspective: 1200px;
+    animation: appear .8s ease both;
+  }
+  @keyframes appear { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .scene::before {
+    content: "";
+    position: absolute;
+    left: 6%; right: 6%; bottom: -26px; height: 40px;
+    background: radial-gradient(ellipse at center, rgba(74,22,48,.22), rgba(74,22,48,0) 70%);
+    transition: opacity .6s ease;
+  }
+  .scene.read::before { opacity: 0; }
+
+  .env-back, .env-front, .flap { position: absolute; left: 0; right: 0; }
+  .env-back {
+    top: 0; bottom: 0; z-index: 1;
+    background: var(--env-back);
+    border-radius: 6px;
+  }
+  .env-front {
+    top: 0; bottom: 0; z-index: 3;
+    background: var(--env-front);
+    clip-path: polygon(0 0, 50% 52%, 100% 0, 100% 100%, 0 100%);
+    border-radius: 6px;
+  }
+  .flap {
+    top: 0; height: 62%; z-index: 5;
+    background: var(--env-flap);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    transform-origin: top center;
+    transition: transform .75s cubic-bezier(.5,0,.3,1), background-color .75s ease;
+  }
+  .scene.open .flap { transform: rotateX(-180deg); background: var(--env-back); }
+  .scene.flap-up .flap { z-index: 0; }
+  .seal {
+    position: absolute; z-index: 6;
+    left: 50%; top: 62%;
+    width: 40px; height: 40px; margin: -20px 0 0 -20px;
+    border-radius: 50%;
+    background: var(--rose);
+    color: #fff; font-size: 18px;
+    display: grid; place-items: center;
+    box-shadow: 0 2px 6px rgba(74,22,48,.3);
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .scene.open .seal { opacity: 0; transform: scale(.6); }
+  .scene.read .env-back, .scene.read .env-front, .scene.read .flap, .scene.read .seal {
+    opacity: 0;
+    translate: 0 70px;
+    transition: opacity .7s ease, translate .9s ease, transform .75s cubic-bezier(.5,0,.3,1);
+  }
+
+  /* Le mot */
+  .note-wrap {
+    position: absolute; z-index: 2;
+    left: 50%; top: 50%;
+    width: var(--nw); height: var(--nh);
+    margin-left: calc(var(--nw) / -2);
+    margin-top: calc(var(--nh) / -2);
+    transform: translateY(calc(var(--nh) / 2 - var(--eh) * 0.22)) scale(.8);
+    filter: drop-shadow(0 6px 16px rgba(74,22,48,.18));
+    pointer-events: none;
+    transition: transform 1s cubic-bezier(.3,.8,.3,1);
+  }
+  .note {
+    width: 100%; height: 100%;
+    background: var(--paper);
+    border-radius: 4px;
+    padding: 34px 26px 24px;
+    clip-path: inset(0 0 70% 0);
+    transition: clip-path 1s cubic-bezier(.3,.8,.3,1);
+  }
+  .scene.rise .note-wrap { transform: translateY(calc(var(--nh) / 2 - var(--eh) * 0.72)) scale(.8); }
+  .scene.rise .note { clip-path: inset(0 0 40% 0); }
+  .scene.read .note-wrap { z-index: 6; transform: none; }
+  .scene.read .note { clip-path: inset(0 0 0 0); }
+  .scene.ready .note-wrap { pointer-events: auto; filter: none; }
+  .scene.ready .note { box-shadow: 0 6px 22px rgba(74,22,48,.16); }
+
+  .hello { margin: 0 0 8px; font-size: 1.05rem; color: var(--ink-soft); }
+  .when {
+    display: block;
+    font-family: var(--serif);
+    font-size: clamp(2.5rem, 13vw, 3.7rem);
+    font-weight: 400;
+    line-height: .95;
+    letter-spacing: -0.01em;
+  }
+  .ask {
+    display: block;
+    margin-top: 18px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(1.5rem, 6.4vw, 1.9rem);
+    line-height: 1.1;
+    color: var(--ink-soft);
+  }
+  .time { display: block; margin-top: 12px; font-size: 1rem; font-weight: 600; color: var(--rose); }
+  h1 { margin: 0; font-weight: 400; }
+  .actions {
+    display: flex; align-items: center; gap: 16px;
+    margin-top: 28px; min-height: 64px;
+  }
+  .yes {
+    background: var(--rose); color: var(--on-rose);
+    border: 0; border-radius: 999px;
+    padding: 14px 38px;
+    font-size: 1.25rem; font-weight: 800;
+    transform: scale(var(--grow, 1));
+    transform-origin: left center;
+    transition: transform .3s ease;
+  }
+  .no {
+    background: transparent; color: var(--ink);
+    border: 2px solid var(--ink); border-radius: 999px;
+    padding: 10px 22px;
+    font-size: 1rem; font-weight: 600;
+    white-space: nowrap;
+    touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+  .no.flying {
+    position: fixed; z-index: 50; margin: 0;
+    transition: left .28s cubic-bezier(.3,1.4,.5,1), top .28s cubic-bezier(.3,1.4,.5,1);
+  }
+  .remark { min-height: 1.4em; margin: 12px 0 0; color: var(--ink-soft); font-size: .95rem; }
+
+  /* ---------- Écrans suivants ---------- */
+  main { width: 100%; max-width: 640px; margin: 0 auto; padding: 56px 24px; min-height: 100svh; display: flex; flex-direction: column; justify-content: center; }
+  .screen { animation: arrive .5s ease both; }
+  @keyframes arrive { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  h2 {
+    margin: 0 0 28px;
+    font-family: var(--serif); font-weight: 400;
+    font-size: clamp(2.4rem, 10vw, 3.8rem);
+    line-height: 1; letter-spacing: -0.01em;
+  }
+  h2:focus { outline: none; }
+  .rows { display: flex; flex-direction: column; border-top: 1.5px solid var(--ink); }
+  .row {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+    width: 100%;
+    background: transparent; color: var(--ink);
+    border: 0; border-bottom: 1.5px solid var(--ink);
+    padding: 20px 6px; text-align: left;
+    font-size: clamp(1.25rem, 5vw, 1.6rem); font-weight: 600; letter-spacing: -0.01em;
+    transition: background .15s, color .15s, padding .15s;
+  }
+  .row small { font-size: .95rem; font-weight: 400; opacity: .7; }
+  .row:hover, .row:active { background: var(--ink); color: var(--cream); padding-left: 16px; padding-right: 16px; }
+  .chosen { font-family: var(--serif); font-size: clamp(2.8rem, 12vw, 5rem); line-height: .98; margin: 0 0 24px; }
+  .lead { font-size: 1.25rem; line-height: 1.4; margin: 0 0 32px; max-width: 30ch; }
+  .back { background: transparent; color: var(--ink); border: 2px solid var(--ink); border-radius: 999px; padding: 12px 24px; font-size: 1rem; font-weight: 600; }
+
+
+  .field { display: block; margin: 0 0 8px; font-size: .95rem; color: var(--ink-soft); }
+  textarea {
+    display: block; width: 100%; resize: vertical;
+    background: var(--paper); color: var(--ink);
+    border: 1.5px solid var(--ink); border-radius: 10px;
+    padding: 14px; font: inherit; font-size: 1rem; line-height: 1.4;
+  }
+  textarea:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .send {
+    margin-top: 16px;
+    background: var(--rose); color: var(--on-rose);
+    border: 0; border-radius: 999px; padding: 14px 32px;
+    font-size: 1.1rem; font-weight: 800;
+  }
+  .send:disabled { opacity: .6; cursor: default; }
+  .status { min-height: 1.4em; margin: 14px 0 0; color: var(--ink-soft); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scene, .screen { animation: none; }
+    .note-wrap, .note, .flap, .stage, .yes, .row, .no.flying { transition: none !important; }
+    .leaf { animation: none; top: var(--top); }
+    .leaf svg { animation: none; transform: rotate(var(--r)); }
+  }
+</style>
+</head>
+<body>
+
+<div class="leaves" id="leaves" aria-hidden="true"></div>
+
+<div class="stage" id="stage">
+  <div class="scene" id="scene">
+    <div class="env-back"></div>
+
+    <div class="note-wrap">
+      <div class="note">
+        <p class="hello" id="hello" hidden></p>
+        <h1>
+          <span class="when">Vendredi<br>09/10/2026</span>
+          <span class="time">à 21h, pour une activité surprise</span>
+          <span class="ask">Ça te tente ?</span>
+        </h1>
+        <div class="actions" id="actions">
+          <button class="yes" id="yes" type="button">Oui</button>
+          <button class="no" id="no" type="button" tabindex="-1" aria-disabled="true">Non</button>
+        </div>
+        <p class="remark" id="remark" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <div class="env-front"></div>
+    <div class="flap"></div>
+    <div class="seal" aria-hidden="true">♥</div>
+  </div>
+</div>
+
+<main id="main" hidden>
+  <section class="screen" id="screen-done">
+    <h2 id="done-title" tabindex="-1">C'est noté.</h2>
+    <p class="chosen">Vendredi 9 octobre,<br>21h.</p>
+    <p class="lead">Je m'occupe de l'activité surprise. Je suis prévenu de ton oui. Laisse-moi un petit mot.</p>
+    <label class="field" for="mot">Un petit mot pour moi (pas facultatif)</label>
+    <textarea id="mot" rows="4" maxlength="500" placeholder="Écris ici…"></textarea>
+    <button class="send" id="send" type="button">Envoyer mon mot</button>
+    <p class="status" id="status" aria-live="polite"></p>
+  </section>
+</main>
+
+<script>
+  // ---- À personnaliser ----
+  var PRENOM = "";
+  // Colle ici ton lien Formspree (voir les explications) :
+  var FORM_URL = "https://formspree.io/f/TON_ID";
+  // -------------------------
+
+  var NO_LABELS = ["Non", "Non ?", "Réfléchis", "Essaie encore", "Raté", "Impossible", "Vraiment ?", "Allez, dis oui"];
+  var REMARKS = ["", "Il a bougé.", "Il est timide.", "Il est plus rapide que toi.", "Il ne sert à rien d'insister.", "Ce bouton ne fonctionne pas.", "Il n'a jamais été cliquable.", "Le bouton Oui, lui, t'attend."];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var scene = $("scene"), yes = $("yes"), no = $("no"), remark = $("remark");
+  var attempts = 0, lastDodge = 0, flying = false, ready = false;
+
+  if (PRENOM) { $("hello").textContent = "Coucou " + PRENOM + ","; $("hello").hidden = false; }
+
+  /* Ouverture de la lettre */
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function add(c, t) { setTimeout(function () { scene.classList.add(c); }, t); }
+  if (reduce) {
+    scene.className = "scene open flap-up rise read ready"; ready = true;
+  } else {
+    add("open", 1000);
+    add("flap-up", 1350);
+    add("rise", 1800);
+    add("read", 2800);
+    setTimeout(function () { scene.classList.add("ready"); ready = true; }, 3800);
+  }
+
+  /* Bouton Non qui s'enfuit */
+  function overlaps(a, b, pad) {
+    return !(a.right + pad < b.left || a.left - pad > b.right || a.bottom + pad < b.top || a.top - pad > b.bottom);
+  }
+  function dodge(px, py) {
+    if (!ready) return;
+    var now = Date.now();
+    if (now - lastDodge < 150) return;
+    lastDodge = now;
+    attempts++;
+
+    if (!flying) {
+      var cur = no.getBoundingClientRect();
+      document.body.appendChild(no);
+      no.style.left = cur.left + "px";
+      no.style.top = cur.top + "px";
+      no.classList.add("flying");
+      flying = true;
+      void no.offsetWidth;
+    }
+    no.textContent = NO_LABELS[Math.min(attempts, NO_LABELS.length - 1)];
+    remark.textContent = REMARKS[Math.min(attempts, REMARKS.length - 1)];
+    yes.style.setProperty("--grow", String(1 + Math.min(attempts, 8) * 0.05));
+
+    var w = no.offsetWidth, h = no.offsetHeight;
+    var vw = window.innerWidth, vh = window.innerHeight, mx = 16, my = 48;
+    var yr = yes.getBoundingClientRect();
+    var x = 0, y = 0, tries = 0, ok = false;
+    while (tries < 60 && !ok) {
+      x = mx + Math.random() * Math.max(1, vw - w - 2 * mx);
+      y = my + Math.random() * Math.max(1, vh - h - 2 * my);
+      ok = !overlaps({ left: x, top: y, right: x + w, bottom: y + h }, yr, 30);
+      if (ok && px != null) {
+        var dx = (x + w / 2) - px, dy = (y + h / 2) - py;
+        ok = Math.sqrt(dx * dx + dy * dy) > 170;
+      }
+      tries++;
+    }
+    no.style.left = x + "px";
+    no.style.top = y + "px";
+  }
+
+  document.addEventListener("pointermove", function (e) {
+    if (e.pointerType !== "mouse" || !ready || $("stage").hidden) return;
+    var r = no.getBoundingClientRect();
+    var cx = Math.max(r.left, Math.min(e.clientX, r.right));
+    var cy = Math.max(r.top, Math.min(e.clientY, r.bottom));
+    var d = Math.sqrt((e.clientX - cx) * (e.clientX - cx) + (e.clientY - cy) * (e.clientY - cy));
+    if (d < 80) dodge(e.clientX, e.clientY);
+  });
+  no.addEventListener("pointerdown", function (e) { e.preventDefault(); dodge(e.clientX, e.clientY); });
+  no.addEventListener("touchstart", function (e) {
+    e.preventDefault();
+    var t = e.touches[0];
+    dodge(t ? t.clientX : null, t ? t.clientY : null);
+  }, { passive: false });
+  no.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); });
+  no.addEventListener("keydown", function (e) { e.preventDefault(); dodge(null, null); });
+  no.addEventListener("focus", function () { dodge(null, null); no.blur(); });
+
+
+  function post(data) {
+    if (FORM_URL.indexOf("TON_ID") > -1) return Promise.reject(new Error("non configuré"));
+    return fetch(FORM_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(data)
+    }).then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); });
+  }
+
+  yes.addEventListener("click", function () {
+    if (!ready) return;
+    post({
+      _subject: "Elle a dit OUI 💌",
+      message: "Elle a cliqué sur Oui pour vendredi 09/10/2026 à 21h. Tentatives sur le bouton Non : " + attempts
+    }).catch(function () {});
+  });
+
+  $("send").addEventListener("click", function () {
+    var btn = $("send"), status = $("status");
+    var mot = $("mot").value.trim();
+    if (!mot) { status.textContent = "Je t'ai dit que ce n'était pas facultatif. Écris-moi au moins un mot."; $("mot").focus(); return; }
+    btn.disabled = true;
+    status.textContent = "Envoi…";
+    post({ _subject: "Son petit mot 💌", message: mot })
+      .then(function () {
+        status.textContent = "C'est envoyé. À vendredi !";
+        $("mot").disabled = true;
+      })
+      .catch(function () {
+        status.textContent = "L'envoi n'a pas marché, réessaie dans un instant.";
+        btn.disabled = false;
+      });
+  });
+
+  /* Oui -> écran de fin */
+  yes.addEventListener("click", function () {
+    if (!ready) return;
+    $("stage").classList.add("leaving");
+    no.style.display = "none";
+    setTimeout(function () {
+      $("stage").hidden = true;
+      $("main").hidden = false;
+      window.scrollTo(0, 0);
+      $("done-title").focus({ preventScroll: true });
+    }, 450);
+  });
+
+
+  /* Feuilles d'automne en arrière-plan */
+  (function () {
+    var colors = ["#e8832a", "#d9651c", "#f0a04b", "#c4521a", "#e9b44c", "#cf6a22"];
+    var path = "M12 1.5c1.6 3.2 5.6 4.4 5.6 9.2 0 2.2-1.1 4-2.6 5.2l.6 3.2-3.6-1.4-3.6 1.4.6-3.2C7.5 14.7 6.4 12.9 6.4 10.7 6.4 5.9 10.4 4.7 12 1.5z";
+    var box = $("leaves");
+    for (var i = 0; i < 18; i++) {
+      var el = document.createElement("div");
+      el.className = "leaf";
+      var size = 22 + Math.random() * 26;
+      el.style.setProperty("--x", (Math.random() * 96) + "%");
+      el.style.setProperty("--s", size + "px");
+      el.style.setProperty("--d", (14 + Math.random() * 14) + "s");
+      el.style.setProperty("--delay", (-Math.random() * 26) + "s");
+      el.style.setProperty("--sw", (2.5 + Math.random() * 2.5) + "s");
+      el.style.setProperty("--r", (25 + Math.random() * 55) + "deg");
+      el.style.setProperty("--drift", ((Math.random() * 140) - 70) + "px");
+      el.style.setProperty("--top", (Math.random() * 90) + "%");
+      el.innerHTML = '<svg viewBox="0 0 24 24"><path d="' + path + '" fill="' + colors[i % colors.length] + '"/><path d="M12 5v15" stroke="rgba(74,22,48,.28)" stroke-width=".8" fill="none"/></svg>';
+      box.appendChild(el);
+    }
+  })();
+</script>
+</body>
+</html>
